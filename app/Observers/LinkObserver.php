@@ -7,9 +7,9 @@ use App\Models\Link;
 class LinkObserver
 {
 	/**
-	 * Handle the Link "deleted" event.
+	 * Handle the Link "deleting" event.
 	 */
-	public function deleted(Link $link): void
+	public function deleting(Link $link): void
 	{
 		$link->redirects()->delete();
 	}
