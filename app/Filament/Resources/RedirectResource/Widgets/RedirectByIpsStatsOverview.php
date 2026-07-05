@@ -22,7 +22,6 @@ class RedirectByIpsStatsOverview
 
 	protected function getStats(): array
 	{
-		dd(session('timezone'));
 		$linksTable     = (new Link())->getTable();
 		$redirectsTable = (new Redirect())->getTable();
 
