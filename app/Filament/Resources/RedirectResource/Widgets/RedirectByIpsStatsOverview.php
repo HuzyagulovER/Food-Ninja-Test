@@ -13,11 +13,11 @@ class RedirectByIpsStatsOverview
 {
 	protected ?string $heading = 'Статистика';
 
-	public string $ipAddress;
+	public string $linkId;
 
-	public function mount(string $ip_address): void
+	public function mount(string $link_id): void
 	{
-		$this->ipAddress = $ip_address;
+		$this->linkId = $link_id;
 	}
 
 	protected function getStats(): array
@@ -27,7 +27,7 @@ class RedirectByIpsStatsOverview
 
 		$preQuery = Redirect::join($linksTable, "$redirectsTable.link_id", '=', "$linksTable.id")
 		                    ->where('user_id', auth()->id())
-		                    ->whereIpAddress($this->ipAddress);
+		                    ->where('link_id', $this->linkId);
 
 		return [
 			Stat::make(
@@ -45,12 +45,12 @@ class RedirectByIpsStatsOverview
             DATE_FORMAT(created_at, '%Y-%m-%d %H:00:00') AS hour_bucket,
             COUNT(*) AS hour_total
         FROM $redirectsTable
-        WHERE ip_address = ?
+        WHERE link_id = ?
         GROUP BY hour_bucket
     ) t
     ORDER BY hour_bucket
 ",
-						    [$this->ipAddress]
+						    [$this->linkId]
 					    )
 				    )->pluck('cumulative_total')
 				     ->toArray()

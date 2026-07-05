@@ -5,7 +5,7 @@ namespace App\Filament\Resources\RedirectResource\Pages;
 use App\Filament\Resources\RedirectResource;
 use Filament\Resources\Pages\ListRecords;
 
-class ListRedirectIps
+class ListRedirect
 	extends ListRecords
 {
 	protected static string $resource   = RedirectResource::class;

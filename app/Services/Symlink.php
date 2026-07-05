@@ -22,8 +22,12 @@ class Symlink
 		return $this;
 	}
 
-	public static function encode(Link $link): string
+	public static function encode(Link|int $link): string
 	{
+		if (is_int($link)) {
+			$link = Link::find($link);
+		}
+
 		return static::getPreUrl() . app('code-generator')->generate($link->id);
 	}
 

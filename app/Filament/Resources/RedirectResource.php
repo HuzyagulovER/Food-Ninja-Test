@@ -6,8 +6,8 @@ use App\Filament\Resources\RedirectResource\Pages;
 use App\Filament\Resources\RedirectResource\Widgets\RedirectStatsOverview;
 use App\Models\Link;
 use App\Models\Redirect;
+use App\Services\Symlink;
 use Filament\Resources\Resource;
-use Filament\Tables;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -26,8 +26,14 @@ class RedirectResource
 		return $table
 			->columns(
 				[
-					TextColumn::make('ip_address')
-					          ->label('IP адрес'),
+					TextColumn::make('symlink')
+					          ->label('Ссылка')
+					          ->getStateUsing(fn ($record): string => Symlink::encode($record->link)),
+
+					TextColumn::make('original_link')
+					          ->label('Оригинальная ссылка')
+					          ->tooltip(fn (string $state): string => $state)
+					          ->limit(40, '...'),
 
 					TextColumn::make('redirect_amount')
 					          ->label('Количество переходов'),
@@ -45,9 +51,9 @@ class RedirectResource
 					      ->icon('heroicon-o-eye')
 					      ->url(
 						      fn ($record) => self::getUrl(
-							      'ip_address',
+							      'link',
 							      [
-								      'ip_address' => $record->ip_address,
+								      'link_id' => $record->link_id,
 							      ]
 						      )
 					      ),
@@ -55,11 +61,7 @@ class RedirectResource
 			)
 			->bulkActions(
 				[
-					Tables\Actions\BulkActionGroup::make(
-						[
-							Tables\Actions\DeleteBulkAction::make(),
-						]
-					),
+					//
 				]
 			);
 	}
@@ -74,8 +76,8 @@ class RedirectResource
 	public static function getPages(): array
 	{
 		return [
-			'index'      => Pages\ListRedirectIps::route('/'),
-			'ip_address' => Pages\ListRedirectsByIp::route('/{ip_address}'),
+			'index' => Pages\ListRedirect::route('/'),
+			'link'  => Pages\ListRedirectsByLink::route('/{link_id}'),
 		];
 	}
 
@@ -94,12 +96,9 @@ class RedirectResource
 		return Redirect::query()
 		               ->join($linkTable, "$table.link_id", '=', "$linkTable.id")
 		               ->where("$linkTable.user_id", auth()->id())
-		               ->selectRaw("MIN($table.id) as id, $table.ip_address, COUNT(*) as redirect_amount")
-		               ->groupBy("$table.ip_address");
+		               ->selectRaw(
+			               "MIN($table.id) as id, link as original_link, link_id, COUNT(*) as redirect_amount"
+		               )
+		               ->groupBy(["link", "link_id"]);
 	}
-
-//	public static function getPluralModelLabel(): string
-//	{
-//		return 'Переходы с IP ';
-//	}
 }

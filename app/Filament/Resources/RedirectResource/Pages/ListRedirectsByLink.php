@@ -5,6 +5,7 @@ namespace App\Filament\Resources\RedirectResource\Pages;
 use App\Filament\Resources\RedirectResource;
 use App\Filament\Resources\RedirectResource\Widgets\RedirectByIpsStatsOverview;
 use App\Models\Redirect;
+use App\Services\Symlink;
 use Filament\Resources\Pages\Page;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
@@ -12,20 +13,22 @@ use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Illuminate\Contracts\Support\Htmlable;
 
-class ListRedirectsByIp
+class ListRedirectsByLink
 	extends Page
 	implements HasTable
 {
 	use InteractsWithTable;
 
 	protected static string $resource = RedirectResource::class;
-	protected static string $view     = 'filament.resources.redirect-resource.pages.redirects-by-ip';
+	protected static string $view     = 'filament.resources.redirect-resource.pages.redirects-by-link';
 
-	public string $ipAddress;
+	public string $linkId;
+	public string $encodedLink;
 
-	public function mount(string $ip_address): void
+	public function mount(string $link_id): void
 	{
-		$this->ipAddress = $ip_address;
+		$this->linkId      = $link_id;
+		$this->encodedLink = Symlink::encode($this->linkId);
 	}
 
 	public function table(Table $table): Table
@@ -33,7 +36,7 @@ class ListRedirectsByIp
 		return $table
 			->query(
 				Redirect::query()
-				        ->where('ip_address', $this->ipAddress)
+				        ->where('link_id', $this->linkId)
 			)
 			->defaultSort('created_at', 'desc')
 			->columns(
@@ -51,7 +54,7 @@ class ListRedirectsByIp
 
 	public function getTitle(): Htmlable|string
 	{
-		return 'Переходы с IP ' . $this->ipAddress;
+		return 'Переходы по ссылке ' . $this->encodedLink;
 	}
 
 	protected function getHeaderWidgets(): array
@@ -59,7 +62,7 @@ class ListRedirectsByIp
 		return [
 			RedirectByIpsStatsOverview::make(
 				[
-					'ip_address' => $this->ipAddress,
+					'link_id' => $this->linkId,
 				]
 			),
 		];
